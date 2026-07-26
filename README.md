@@ -1,5 +1,15 @@
 # CortexSOC — AI Agent Observability Platform
 
+[![SigNoz Hackathon](https://img.shields.io/badge/SigNoz_Hackathon-Track_01--AI_%26_Agent_Observability-F97316?style=for-the-badge&logo=signoz&logoColor=white)](https://wemakedevs.org/events/signoz)
+[![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-v1.25.0-007ACC?style=for-the-badge&logo=opentelemetry&logoColor=white)](https://opentelemetry.io)
+[![SigNoz](https://img.shields.io/badge/SigNoz-Self--Hosted-FF5722?style=for-the-badge&logo=signoz&logoColor=white)](https://signoz.io)
+[![FastAPI](https://img.shields.io/badge/FastAPI-v0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-v18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o--mini-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com)
+[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector_Memory-FFC107?style=for-the-badge&logo=chroma&logoColor=black)](https://www.trychroma.com)
+[![Python](https://img.shields.io/badge/Python-v3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Tests](https://img.shields.io/badge/Tests-223_%2F_223_Passing-4CAF50?style=for-the-badge&logo=pytest&logoColor=white)](https://docs.pytest.org)
+
 > **Built for the [Agents of SigNoz Hackathon](https://wemakedevs.org/events/signoz) · Track 01 — AI & Agent Observability**
 
 CortexSOC is an AI-powered Security Operations Center (SOC) where **8 autonomous agents** collaborate in real-time to detect, investigate, and respond to security threats. Every agent decision, LLM call, memory read, and tool invocation is **fully observable through SigNoz** — giving you complete end-to-end traceability of your AI security pipeline.
