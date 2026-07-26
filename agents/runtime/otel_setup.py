@@ -79,14 +79,20 @@ def init_telemetry(
     flush_interval: int = int(os.getenv("OTLP_FLUSH_INTERVAL_MS", "1000"))
     batch_size: int = int(os.getenv("OTLP_BATCH_SIZE", "512"))
 
-    span_exporter = OTLPSpanExporter(endpoint=traces_url)
-    batch_processor = BatchSpanProcessor(
-        span_exporter,
-        max_export_batch_size=batch_size,
-        schedule_delay_millis=flush_interval,
-    )
     tracer_provider = TracerProvider(resource=resource)
-    tracer_provider.add_span_processor(batch_processor)
+    
+    if os.getenv("OTLP_DISABLED", "0") != "1":
+        try:
+            span_exporter = OTLPSpanExporter(endpoint=traces_url)
+            batch_processor = BatchSpanProcessor(
+                span_exporter,
+                max_export_batch_size=batch_size,
+                schedule_delay_millis=flush_interval,
+            )
+            tracer_provider.add_span_processor(batch_processor)
+        except Exception as exc:
+            pass
+
     trace.set_tracer_provider(tracer_provider)
 
     metric_exporter = OTLPMetricExporter(endpoint=metrics_url)
