@@ -31,6 +31,24 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     try:
         pool = await get_pool()
         app.state.pool = pool
+        
+        # Auto-create tables & ENUMs if deploying on a fresh database (e.g. Render)
+        async with pool.acquire() as conn:
+            has_table = await conn.fetchval(
+                "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'incidents');"
+            )
+            if not has_table:
+                import pathlib
+                sql_path = pathlib.Path(__file__).parent / "migrations" / "001_initial.sql"
+                if sql_path.exists():
+                    sql_content = sql_path.read_text(encoding="utf-8")
+                    await conn.execute(sql_content)
+            
+            try:
+                await conn.execute("ALTER TYPE incident_status ADD VALUE IF NOT EXISTS 'approved';")
+                await conn.execute("ALTER TYPE incident_status ADD VALUE IF NOT EXISTS 'rejected';")
+            except Exception:
+                pass
     except Exception as exc:
         import logging
         logging.getLogger("cortexsoc").warning("DB pool not ready at startup: %s", exc)
