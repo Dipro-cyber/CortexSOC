@@ -308,14 +308,16 @@ CortexSOC/
 
 ---
 
-## 🤝 Built With
+## 🤖 AI Tools & Assistance Disclosure
 
-- [SigNoz](https://signoz.io) — OpenTelemetry-native observability platform
-- [OpenTelemetry](https://opentelemetry.io) — Instrumentation standard
-- [FastAPI](https://fastapi.tiangolo.com) — Python API framework
-- [React](https://react.dev) — Frontend
-- [ChromaDB](https://www.trychroma.com) — Vector memory
-- [OpenAI](https://openai.com) — LLM backbone
+In compliance with the **Agents of SigNoz Hackathon** rules regarding AI tool usage:
+
+* **AI Tools Utilized**: Google Antigravity (AGY), OpenAI ChatGPT, GitHub Copilot.
+* **Scope of AI Assistance**:
+  * Code generation, pair programming, and automated test suite creation.
+  * Debugging OpenTelemetry context propagation and ClickHouse schema compatibility.
+  * Formatting Markdown documentation, README, and architecture diagrams.
+* **Originality Statement**: All core agent orchestration workflows, multi-agent pipeline architecture, custom SOAR remediation logic, and SigNoz integration were engineered specifically for CortexSOC.
 
 ---
 
