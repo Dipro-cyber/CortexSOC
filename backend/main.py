@@ -92,9 +92,9 @@ def create_app() -> FastAPI:
     from backend.middleware.size_check import SizeCheckMiddleware
     app.add_middleware(SizeCheckMiddleware, max_body_size=1_000_000)
 
-    # Rate limiting (2000 req/min per IP)
-    from backend.middleware.rate_limit import RateLimitMiddleware
-    app.add_middleware(RateLimitMiddleware, max_requests=2000, window_seconds=60)
+    # Rate limiting disabled for local dev / demo
+    # from backend.middleware.rate_limit import RateLimitMiddleware
+    # app.add_middleware(RateLimitMiddleware, max_requests=2000, window_seconds=60)
 
     # ── Auth dependency ───────────────────────────────────────────────────────
     # verify_token is applied as a router-level dependency on all API routers.
