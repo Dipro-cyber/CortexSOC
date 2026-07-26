@@ -13,10 +13,10 @@ processors:
 
 exporters:
   clickhousetraces:
-    datasource: tcp://cortexsoc_clickhouse:9000
+    datasource: tcp://clickhouse:9000
     low_cardinal_exception_grouping: false
   clickhousemetricswrite:
-    endpoint: tcp://cortexsoc_clickhouse:9000
+    endpoint: tcp://clickhouse:9000
   logging:
     verbosity: detailed
 

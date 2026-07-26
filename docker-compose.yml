@@ -48,9 +48,12 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-cortexsoc}:${POSTGRES_PASSWORD:-cortexsoc_secret}@postgres:5432/${POSTGRES_DB:-cortexsoc}
-      OTLP_ENDPOINT: http://otel-collector:4318
+      OTLP_ENDPOINT: http://signoz_otel_collector:4318
     ports:
       - "127.0.0.1:${API_PORT:-8000}:8000"
+    networks:
+      - default
+      - signoz-net
     depends_on:
       postgres:
         condition: service_healthy
@@ -175,3 +178,9 @@ volumes:
     name: cortexsoc_clickhouse_data
   signoz_data:
     name: cortexsoc_signoz_data
+
+networks:
+  default:
+  signoz-net:
+    name: cortexsoc-signoz_default
+    external: true
