@@ -40,6 +40,16 @@ class ChromaDBStore:
 
     def _init_store(self) -> None:
         try:
+            import os
+            os.environ["ANONYMIZED_TELEMETRY"] = "False"
+
+            # Cloud hypervisors (e.g. Render) can throw SIGILL (exit code 132) on default ONNX binary CPU instructions.
+            # When DISABLE_CHROMA_ONNX=1 is set, fall back to in-memory store safely.
+            if os.getenv("DISABLE_CHROMA_ONNX", "0") == "1":
+                logger.info("ChromaDB ONNX disabled for cloud deployment, using in-memory store.")
+                self._use_chroma = False
+                return
+
             import chromadb
 
             self._client = chromadb.PersistentClient(path=self._persist_dir)
