@@ -1,0 +1,60 @@
+{
+  "id": "cortexsoc-agent-health",
+  "title": "CortexSOC — Agent Health Overview",
+  "description": "Per-agent invocation rate, error rate, p95 latency, and confidence score.",
+  "tags": ["cortexsoc", "agents", "health"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Invocations per minute (60 min)",
+      "type": "graph",
+      "targets": [
+        {
+          "query": "rate(cortexsoc_agent_invocations_total[1m])",
+          "legend": "{{agent_name}} — {{outcome}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Error rate per minute (60 min)",
+      "type": "graph",
+      "targets": [
+        {
+          "query": "rate(cortexsoc_agent_invocations_total{outcome='failure'}[1m])",
+          "legend": "{{agent_name}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "p50 / p95 / p99 Latency (ms)",
+      "type": "graph",
+      "targets": [
+        {
+          "query": "histogram_quantile(0.50, rate(cortexsoc_agent_latency_ms_bucket[5m]))",
+          "legend": "p50 {{agent_name}}"
+        },
+        {
+          "query": "histogram_quantile(0.95, rate(cortexsoc_agent_latency_ms_bucket[5m]))",
+          "legend": "p95 {{agent_name}}"
+        },
+        {
+          "query": "histogram_quantile(0.99, rate(cortexsoc_agent_latency_ms_bucket[5m]))",
+          "legend": "p99 {{agent_name}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Average Confidence Score per Agent",
+      "type": "gauge",
+      "targets": [
+        {
+          "query": "avg(cortexsoc_agent_confidence_score) by (agent_name)",
+          "legend": "{{agent_name}}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+"""
+CortexSOC — Middleware Package
+"""

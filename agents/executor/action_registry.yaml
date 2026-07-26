@@ -1,0 +1,19 @@
+# CortexSOC action registry
+# risk_level: LOW | MEDIUM | HIGH | CRITICAL
+
+actions:
+  create_ticket:
+    description: Create a security ticket in the incident tracker
+    risk_level: LOW
+    enabled: true
+
+  block_ip:
+    description: Block a source IP at the perimeter firewall
+    risk_level: MEDIUM
+    enabled: true
+
+  isolate_host:
+    description: Isolate a host from the network (stub in MVP)
+    risk_level: HIGH
+    enabled: true
+    stub: true

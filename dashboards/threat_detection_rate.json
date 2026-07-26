@@ -1,0 +1,53 @@
+{
+  "id": "cortexsoc-threat-detection-rate",
+  "title": "CortexSOC — Threat Detection Rate",
+  "description": "Threat signals per hour, MITRE tactic distribution, and risk score histogram.",
+  "tags": ["cortexsoc", "threats", "detection"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Threat signals detected per hour",
+      "type": "graph",
+      "targets": [
+        {
+          "query": "rate(cortexsoc_agent_invocations_total{agent_name='cortexsoc.threat_detection',outcome='success'}[60m])",
+          "legend": "threats/hr"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "MITRE tactic distribution",
+      "type": "pie",
+      "targets": [
+        {
+          "query": "sum(cortexsoc_mitre_tactic_total) by (tactic)",
+          "legend": "{{tactic}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Risk score distribution (buckets)",
+      "type": "bar",
+      "targets": [
+        {
+          "query": "sum(cortexsoc_risk_score_bucket) by (le)",
+          "legend": "score ≤ {{le}}"
+        }
+      ],
+      "buckets": [20, 40, 60, 80, 100]
+    },
+    {
+      "id": 4,
+      "title": "High-risk findings (score > 80)",
+      "type": "stat",
+      "targets": [
+        {
+          "query": "sum(cortexsoc_risk_high_risk_findings_total)",
+          "legend": "high-risk findings"
+        }
+      ]
+    }
+  ]
+}

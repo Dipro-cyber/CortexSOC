@@ -1,0 +1,3 @@
+"""
+CortexSOC — Pydantic Schemas Package
+"""

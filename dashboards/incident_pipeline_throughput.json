@@ -1,0 +1,52 @@
+{
+  "id": "cortexsoc-pipeline-throughput",
+  "title": "CortexSOC — Incident Pipeline Throughput",
+  "description": "Events ingested, incidents created, mean end-to-end latency, and per-stage drop-off.",
+  "tags": ["cortexsoc", "pipeline", "throughput"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Events ingested per minute",
+      "type": "graph",
+      "targets": [
+        {
+          "query": "rate(cortexsoc_agent_invocations_total{agent_name='cortexsoc.log_collector'}[1m])",
+          "legend": "events/min"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Incidents created per hour",
+      "type": "graph",
+      "targets": [
+        {
+          "query": "rate(cortexsoc_agent_invocations_total{agent_name='cortexsoc.incident_report',outcome='success'}[60m])",
+          "legend": "incidents/hr"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Drop-off per pipeline stage",
+      "type": "bar",
+      "targets": [
+        {
+          "query": "sum(cortexsoc_agent_invocations_total) by (agent_name)",
+          "legend": "{{agent_name}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "DLQ depth (unprocessed failures)",
+      "type": "stat",
+      "targets": [
+        {
+          "query": "cortexsoc_orchestrator_dlq_depth",
+          "legend": "DLQ depth"
+        }
+      ]
+    }
+  ]
+}

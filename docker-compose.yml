@@ -1,0 +1,177 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# CortexSOC — Full Stack (App + SigNoz Observability)
+# Start everything: docker compose up -d
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── Application Services ──────────────────────────────────────────────────
+  postgres:
+    image: postgres:16
+    container_name: cortexsoc_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cortexsoc}
+      POSTGRES_USER: ${POSTGRES_USER:-cortexsoc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cortexsoc_secret}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cortexsoc} -d ${POSTGRES_DB:-cortexsoc}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  migrate:
+    image: python:3.12-slim
+    container_name: cortexsoc_migrate
+    working_dir: /app
+    command: >
+      sh -c "pip install alembic psycopg2-binary sqlalchemy --quiet &&
+             alembic upgrade head"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-cortexsoc}:${POSTGRES_PASSWORD:-cortexsoc_secret}@postgres:5432/${POSTGRES_DB:-cortexsoc}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: cortexsoc_backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-cortexsoc}:${POSTGRES_PASSWORD:-cortexsoc_secret}@postgres:5432/${POSTGRES_DB:-cortexsoc}
+      OTLP_ENDPOINT: http://otel-collector:4318
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\" || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cortexsoc_frontend
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    ports:
+      - "127.0.0.1:5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── OpenTelemetry Collector ──────────────────────────────────────────────
+  otel-collector:
+    image: signoz/signoz-otel-collector:0.111.17
+    container_name: cortexsoc_otel_collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "127.0.0.1:4317:4317"   # gRPC
+      - "127.0.0.1:4318:4318"   # HTTP
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── SigNoz Observability Stack ───────────────────────────────────────────
+  zookeeper:
+    image: zookeeper:3.8
+    container_name: cortexsoc_zookeeper
+    ports:
+      - "127.0.0.1:2181:2181"
+    restart: unless-stopped
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.1.5
+    container_name: cortexsoc_clickhouse
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:8123:8123"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./clickhouse-config.xml:/etc/clickhouse-server/config.d/cluster.xml:ro
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  schema-migrator:
+    image: signoz/signoz-schema-migrator:latest
+    container_name: cortexsoc_schema_migrator
+    command: ["sync", "--dsn=tcp://clickhouse:9000"]
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    restart: "no"
+
+  signoz-query-service:
+    image: signoz/query-service:latest
+    container_name: cortexsoc_signoz_query
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      - SIGNOZ_SQLSTORE_SQLITE_PATH=/var/lib/signoz/signoz.db
+      - SIGNOZ_TELEMETRYSTORE_PROVIDER=clickhouse
+      - SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN=tcp://clickhouse:9000
+      - SIGNOZ_ALERTMANAGER_LEGACY_API__URL=http://alertmanager:9093/api/
+      - SIGNOZ_JWT_SECRET_KEY=${SIGNOZ_JWT_SECRET:-cortexsoc_signoz_jwt_secret_key_12345}
+      - JWT_SECRET_KEY=${SIGNOZ_JWT_SECRET:-cortexsoc_signoz_jwt_secret_key_12345}
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    volumes:
+      - signoz_data:/var/lib/signoz
+    restart: unless-stopped
+
+  signoz-frontend:
+    image: signoz/frontend:latest
+    container_name: cortexsoc_signoz_frontend
+    ports:
+      - "127.0.0.1:3301:3301"
+    volumes:
+      - ./signoz-nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./signoz-index.html:/usr/share/nginx/html/index.html:ro
+    depends_on:
+      - signoz-query-service
+    restart: unless-stopped
+
+  alertmanager:
+    image: signoz/alertmanager:0.23.7
+    container_name: cortexsoc_alertmanager
+    ports:
+      - "127.0.0.1:9093:9093"
+    depends_on:
+      - signoz-query-service
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: cortexsoc_postgres_data
+  clickhouse_data:
+    name: cortexsoc_clickhouse_data
+  signoz_data:
+    name: cortexsoc_signoz_data
