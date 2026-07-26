@@ -4,7 +4,8 @@ import type {
   IncidentListResponse,
 } from "../types/api";
 
-const BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "";
+const rawBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "";
+const BASE = rawBase.replace(/\/+$/, "");
 const DEFAULT_DEMO_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc4NTA2OTE2OX0.k7WxKAibH1KO-QhFzDA5jrcyR2c0KJm5Sow51_Y-Ypw";
 const TOKEN = import.meta.env.VITE_API_TOKEN || DEFAULT_DEMO_TOKEN;
 
